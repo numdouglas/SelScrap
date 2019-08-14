@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://A:/usb/Platnumz/Sele/libs" />
+          <root url="jar://A:/usb/Platnumz/Sele/client-combined-3.141.59.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://A:/usb/Platnumz/Sele/client-combined-3.141.59-sources.jar!/" />
+        </SOURCES>
+        <jarDirectory url="file://A:/usb/Platnumz/Sele/libs" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="file://$USER_HOME$/Downloads/Compressed/commons-io-2.6" />
+        </CLASSES>
+        <JAVADOC>
+          <root url="file://$USER_HOME$/Downloads/Compressed/commons-io-2.6/docs" />
+        </JAVADOC>
+        <SOURCES>
+          <root url="file://$USER_HOME$/Downloads/Compressed/commons-io-2.6" />
+        </SOURCES>
+        <jarDirectory url="file://$USER_HOME$/Downloads/Compressed/commons-io-2.6" recursive="false" />
+        <jarDirectory url="file://$USER_HOME$/Downloads/Compressed/commons-io-2.6" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+  </component>
+</module>
