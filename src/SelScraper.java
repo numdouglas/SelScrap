@@ -16,7 +16,7 @@ public class SelScraper {
 
     WebElement sauce_div;
     String[] already_bet=new String[10];
-    double initial_bal, pending_bets;
+    double initial_bal, pending_bets,ex_bal;
     boolean first_login=true;
 
     public void setOptions() {
@@ -69,7 +69,8 @@ public class SelScraper {
                 pending_bets=Double.parseDouble(driver.findElement(By.xpath("//a[@href=\"/my-bets\"]")).getText().replace("My Bets","").replace(" [","").replace("]",""));}
                 catch (WebDriverException f){
                     pending_bets=0;}
-                if(((initial_bal+pending_bets)-initial_bal)>=2){
+                ex_bal=(initial_bal+(pending_bets/2))-initial_bal;
+                if(ex_bal>=2){
 
                 System.out.println("Doggo has achieved aims for the day. Closing kennel and shop");
                 try {
