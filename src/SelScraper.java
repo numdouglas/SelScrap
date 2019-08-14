@@ -72,6 +72,13 @@ public class SelScraper {
                 if(((initial_bal+pending_bets)-initial_bal)>=2){
 
                 System.out.println("Doggo has achieved aims for the day. Closing kennel and shop");
+                try {
+                    driver.close();
+                    Runtime.getRuntime().exec("C:\\Users\\user\\Desktop\\del tmp.cmd");
+                }
+                catch (IOException V){
+                    System.out.println("Kennel door not well closed tho");
+                }
                 System.exit(0);
             }
 
