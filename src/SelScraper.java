@@ -196,7 +196,7 @@ driver.quit();
             try {
 
 
-            TimeUnit.SECONDS.sleep(25);}
+            TimeUnit.SECONDS.sleep(22);}
         catch (InterruptedException G){System.out.println("Sleep Interrupted");}
             times_trashed++;}
 
