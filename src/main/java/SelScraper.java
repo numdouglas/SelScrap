@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit;
 
 public class SelScraper {
 
-    public static final String FIN_DIR = "C:\\Users\\dntongai\\Documents\\DripDoggo\\runny\\finisher.txt";
-    public static final String DELETE_TMP_DIR = "C:\\Users\\dntongai\\Documents\\DripDoggo\\del tmp.cmd";
-    public static final String C_DRIVER_EXE_DIR = "C:\\Users\\dntongai\\Documents\\DripDoggo\\chromedriver.exe";
+    public static final String FIN_DIR = "tuluBox/finisher.txt";
+    public static final String DELETE_TMP_DIR = "tuluBox/del tmp.cmd";
+    public static final String C_DRIVER_EXE_DIR = "tuluBox/chromedriver.exe";
     WebDriver driver;
     ChromeOptions options = new ChromeOptions();
     String link_id;
@@ -29,24 +29,21 @@ public class SelScraper {
         options.addArguments("--disable-extensions");
         options.addArguments("--headless");
         options.addArguments("--disable-gpu");
-
-
-
-
+        driver = new ChromeDriver(options);
     }
 
 
     private void login() {
         setOptions();
         try{
-        driver = new ChromeDriver(options);
+
         driver.get ("https://odibets.com/login");
         driver.findElement(By.name("msisdn")).sendKeys("0741287087");
         driver.findElement(By.name("password")).sendKeys("dagi90210");
         driver.findElement(By.xpath("//button[@type='submit']")).click();
         }catch (WebDriverException e){
             System.out.println("Login failed, check the internet connection");
-            driver.quit();
+
             try{
                 TimeUnit.SECONDS.sleep(30);}
             catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
@@ -79,7 +76,7 @@ public class SelScraper {
 
                 System.out.println("Doggo has achieved aims for the day. Closing kennel and shop");
                 try {
-                    driver.close();
+                    driver.quit();
                     PrintStream fileOut = new PrintStream(FIN_DIR);
                     System.setOut(fileOut);
                     System.out.println("Closing with expk of ksh. "+(now_bal+pending_bets)+"\nBalance is ksh. "+now_bal+ " and "+pending_bets+" pending bets with initial investment ksh. "+initial_bal);
@@ -105,7 +102,7 @@ public class SelScraper {
                        System.out.println("Sleep Interrupted");
                    }
 
-                   driver.quit();
+
                    return "Can do dis all day";
                }
 
@@ -113,8 +110,9 @@ public class SelScraper {
             System.out.println("starting access");
             driver.get("https://odibets.com/live?sport=1");
             }catch(WebDriverException g){
+                login();
 
-                System.out.println("Driver instance not initiated due to no internet");return "Can do dis all day";}
+                System.out.println("Logged out. Doggo logging back in");return "Can do dis all day";}
             try{
 
                 try{sauce_div= driver.findElement(By.xpath("//div[@class='event' and not(div[@class='event-locked']) and "/*number(div/div[@class='event-scores-1']/span[contains(@id,'h_')])+number(div/div[@class='event-scores-1']/span[contains(@id,'a_')])>-1  and */+"not(a/span[contains(text(),'"+already_bet[0]+"')]) and not(a/span[contains(text(),'"+already_bet[1]+"')])" +
@@ -160,7 +158,7 @@ public class SelScraper {
                     //Arrays.fill(already_bet, "null");
                     times_trashed++;}
                 catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
-driver.quit();
+
                 return "Can do dis all day"; }
 
             System.out.println("found bet");
@@ -210,8 +208,7 @@ driver.quit();
             times_trashed++;}
 
 
-        while (times_trashed<8);
-        driver.quit();
+        while (times_trashed<9);
 
         return "Can do dis all day";    }
 
@@ -219,10 +216,11 @@ driver.quit();
 
     public  static void main(String[] args){
         SelScraper odidoggo=new SelScraper();
-
+        odidoggo.setOptions();
+        odidoggo.login();
         while (true){
 
-            odidoggo.login();
+
         if (odidoggo.betOnGudOddz().equals("Can do dis all day")){try {
             System.out.println("Cleaning up after self....");
             Runtime.getRuntime().exec(DELETE_TMP_DIR);}
