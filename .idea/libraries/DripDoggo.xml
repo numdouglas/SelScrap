@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="DripDoggo">
+    <CLASSES>
+      <root url="file://$USER_HOME$/Documents/DripDoggo/selenium" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/Documents/DripDoggo/selenium" />
+    </SOURCES>
+    <jarDirectory url="file://$USER_HOME$/Documents/DripDoggo/selenium" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/Documents/DripDoggo/selenium" recursive="false" type="SOURCES" />
+  </library>
+</component>
