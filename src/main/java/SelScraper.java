@@ -39,7 +39,7 @@ public class SelScraper {
 
         driver.get ("https://odibets.com/login");
         driver.findElement(By.name("msisdn")).sendKeys("0741287087");
-        driver.findElement(By.name("password")).sendKeys("dagi90210");
+        driver.findElement(By.name("password")).sendKeys("XXXXXXX");
         driver.findElement(By.xpath("//button[@type='submit']")).click();
         }catch (WebDriverException e){
             System.out.println("Login failed, check the internet connection");
