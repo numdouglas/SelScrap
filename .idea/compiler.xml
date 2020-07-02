@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="SelScrap" target="7" />
+      <module name="SelScrap" target="14" />
     </bytecodeTargetLevel>
   </component>
 </project>
