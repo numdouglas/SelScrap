@@ -1,4 +1,11 @@
-import org.openqa.selenium.*;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.JavascriptException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
@@ -6,6 +13,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+
+import tuluBox.DiscordWebhook;
 
 import static java.lang.System.exit;
 
@@ -34,7 +43,7 @@ public class SelScraper {
         System.setProperty("webdriver.chrome.driver", C_DRIVER_EXE_DIR);
         options.addArguments("--disable-infobars");
         options.addArguments("--disable-extensions");
-        //options.addArguments("--headless");
+        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         driver = new ChromeDriver(options);
 
@@ -46,6 +55,7 @@ public class SelScraper {
     private void login() {
         setOptions();
         try{
+
 
             driver.get ("https://odibets.com");
             driver.findElement(By.id("mobile-web-login")).click();
@@ -95,6 +105,16 @@ public class SelScraper {
                 ex_bal=(now_bal+(pending_bets/2))-initial_bal;
                 if(ex_bal>=2){
 
+                    try{
+                    DiscordWebhook webhook=new DiscordWebhook("https://discord.com/api/webhooks/728967323515486289/F459Me_olUD2KdJqYP8iP92el8vd_9IKHzkk5_3z1dWsplK4NS2vNdxsD4ps1BDIYhWC");
+                    webhook.setContent("Doggo has achieved aims for the day. Closing kennel and shop."+initial_bal+" to "+now_bal+pending_bets+".");
+                    webhook.setUsername("OdiDoggo");
+                    webhook.execute();}
+                    catch (IOException g){
+                        g.printStackTrace();
+                        System.out.println("Doggo Unable to send Mail");
+                    }
+
                     System.out.println("Doggo has achieved aims for the day. Closing kennel and shop");
                     try {
                         driver.quit();
@@ -132,7 +152,7 @@ public class SelScraper {
                 driver.get("https://odibets.com/live?sport=1");
             }catch(WebDriverException g){
                 g.printStackTrace();
-                login();
+                //login();
 
                 System.out.println("Logged out. Doggo logging back in");return "Can do dis all day";}
             try{
@@ -175,7 +195,7 @@ public class SelScraper {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                currentJsQuery ="document.evaluate(\"//button[span[text()>1.1 and text()<1.24] and( substring(@custom, string-length(@custom) -1)='11' or substring(@custom, string-length(@custom) -1)='12')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
+                currentJsQuery ="document.evaluate(\"//button[span[text()>1.16 and text()<1.24] and( substring(@custom, string-length(@custom) -1)='11' or substring(@custom, string-length(@custom) -1)='12')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
                 jsExecutor.executeScript(currentJsQuery);
                 //driver.findElement(By.xpath("//button[contains(text(),'1.']")).click();// | //button[not(@disabled) and span[text()>'1.1'] and span[text()<'1.24'] and substring(@custom, string-length(@custom) -1)='500']")).click();
             }catch (NoSuchElementException |ElementClickInterceptedException | JavascriptException g){//("//button[@oddvalue<'1.5' and @oddvalue>'1.2']")).click();}catch (NoSuchElementException |ElementClickInterceptedException g){
@@ -262,6 +282,7 @@ public class SelScraper {
         SelScraper odidoggo = new SelScraper();
         odidoggo.setOptions();
         Arrays.fill(odidoggo.already_bet,"null");
+        odidoggo.driver.quit();
         odidoggo.login();
         while (true){
 
