@@ -13,11 +13,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-
-import tuluBox.DiscordWebhook;
-
 import static java.lang.System.exit;
 
+import tuluBox.DiscordWebhook;
 
 public class SelScraper {
 
@@ -89,14 +87,26 @@ public class SelScraper {
             try {
                 if(first_login==true){
                     currentJsQuery="return document.evaluate(\"//a[@class='mybal']/span/text()\", document, null, XPathResult.STRING_TYPE, null).stringValue";
+                    try{ initial_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));}
+                    catch (NumberFormatException e){e.printStackTrace();
+                        System.out.println("Failed to load balance, retrying");
+                        return "Can do dis all day";
+                    }
 
-                    initial_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));
+
                     first_login=false;}
                 try{
-                    currentJsQuery="return document.evaluate(\"//a[@class='mybal']/span/text()\", document, null, XPathResult.STRING_TYPE, null).stringValue";
-                    now_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));
-
                     driver.get("https://odibets.com/mybets");
+
+                    currentJsQuery="return document.evaluate(\"//a[@class='mybal']/span/text()\", document, null, XPathResult.STRING_TYPE, null).stringValue";
+
+
+                    try{now_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));}
+                    catch (NumberFormatException e){
+                        e.printStackTrace();
+                        System.out.println("Failed to load balance, retrying");
+                        return "Can do dis all day";
+                    }
 
                     pending_bets=driver.findElements(By.xpath("//div[@class='l-mybets-section-container show']")).size();
                 }
@@ -182,10 +192,12 @@ public class SelScraper {
 
                     try {
                         System.out.println("Doggo has bet too much, taking fresh air");
+                        Runtime.getRuntime().exec(DELETE_TMP_DIR);
                         TimeUnit.MINUTES.sleep(4);
                         game_bet_counter=0;
                         Arrays.fill(already_bet, "null");}
-                    catch (InterruptedException in){System.out.println("Sleep Interrupted"); }}
+                    catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
+                    catch (IOException i){i.printStackTrace();}}
 
 
                 System.out.println(already_bet[0]);
@@ -195,7 +207,7 @@ public class SelScraper {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                currentJsQuery ="document.evaluate(\"//button[span[text()>1.16 and text()<1.24] and( substring(@custom, string-length(@custom) -1)='11' or substring(@custom, string-length(@custom) -1)='12')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
+                currentJsQuery ="document.evaluate(\"//button[span[text()>1.18 and text()<1.30] and( substring(@custom, string-length(@custom) -1)='11')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
                 jsExecutor.executeScript(currentJsQuery);
                 //driver.findElement(By.xpath("//button[contains(text(),'1.']")).click();// | //button[not(@disabled) and span[text()>'1.1'] and span[text()<'1.24'] and substring(@custom, string-length(@custom) -1)='500']")).click();
             }catch (NoSuchElementException |ElementClickInterceptedException | JavascriptException g){//("//button[@oddvalue<'1.5' and @oddvalue>'1.2']")).click();}catch (NoSuchElementException |ElementClickInterceptedException g){
@@ -287,15 +299,10 @@ public class SelScraper {
         while (true){
 
 
-            if (odidoggo.betOnGudOddz().equals("Can do dis all day")){try {
-                System.out.println("Cleaning up after self....");
-                Runtime.getRuntime().exec(DELETE_TMP_DIR);}
-            catch (IOException V){System.out.println("Command not executed");
-            }
-            }
+            if (odidoggo.betOnGudOddz().equals("Can do dis all day")){
+                System.out.println("Onto the next."); }
             else {
                 break;
-
             }}
 
         exit(0);}}
