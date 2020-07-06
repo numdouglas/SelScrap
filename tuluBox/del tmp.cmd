@@ -1,3 +1,4 @@
+ECHO "Cleaning up after self.."
 DEL /S /Q "%TMP%\*.*"
 DEL /S /Q "%TEMP%\*.*"
 DEL /S /Q "%WINDIR%\Temp\*.*"

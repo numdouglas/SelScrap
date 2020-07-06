@@ -9,6 +9,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -20,8 +22,12 @@ import tuluBox.DiscordWebhook;
 public class SelScraper {
 
     public static final String FIN_DIR = "tuluBox/finisher.txt";
+    public static final String START_DIR = "tuluBox/starter.txt";
     public static final String DELETE_TMP_DIR = "tuluBox/del tmp.cmd";
     public static final String C_DRIVER_EXE_DIR = "tuluBox/chromedriver.exe";
+
+    PrintStream std_out = System.out;
+    StringBuilder bal_from_file=new StringBuilder();
     WebDriver driver;
     ChromeOptions options = new ChromeOptions();
     String link_id;
@@ -36,6 +42,8 @@ public class SelScraper {
     String[] already_bet=new String[10];
     double initial_bal, pending_bets,ex_bal,now_bal;
     boolean first_login=true;
+
+
 
     public void setOptions() {
         System.setProperty("webdriver.chrome.driver", C_DRIVER_EXE_DIR);
@@ -53,8 +61,6 @@ public class SelScraper {
     private void login() {
         setOptions();
         try{
-
-
             driver.get ("https://odibets.com");
             driver.findElement(By.id("mobile-web-login")).click();
             driver.findElement(By.xpath("//input[@type='tel']")).sendKeys("0741287087");
@@ -76,6 +82,27 @@ public class SelScraper {
     }
 
 
+    private String readFromFile(String file_location){
+        try{
+            FileReader fr = new FileReader(file_location);
+            int i;
+            while ((i=fr.read()) != -1)
+                bal_from_file.append((char)i);}
+
+        catch (FileNotFoundException f){f.printStackTrace();}
+        catch (IOException f){f.printStackTrace();}
+        return bal_from_file.toString();}
+
+    private void writeToFile(String file_location,String message){
+        try{
+            PrintStream fileOut = new PrintStream(file_location);
+            System.setOut(fileOut);
+            System.out.println(message);
+            System.setOut(std_out);}
+
+        catch (FileNotFoundException f){f.printStackTrace();}
+        catch (IOException f){f.printStackTrace();}
+    }
 
     private String betOnGudOddz(){
         int times_trashed=0;
@@ -87,7 +114,15 @@ public class SelScraper {
             try {
                 if(first_login==true){
                     currentJsQuery="return document.evaluate(\"//a[@class='mybal']/span/text()\", document, null, XPathResult.STRING_TYPE, null).stringValue";
-                    try{ initial_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));}
+                    try{
+                        try{
+                        initial_bal=Double.parseDouble(readFromFile(START_DIR));
+                        System.out.println("Continuing from interrupted Session of Initial Investment: "+initial_bal);}
+                        catch (NumberFormatException e){
+                            e.printStackTrace();
+                        initial_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));
+                        System.out.println("Starting fresh session with Investment: "+initial_bal);}
+                    }
                     catch (NumberFormatException e){e.printStackTrace();
                         System.out.println("Failed to load balance, retrying");
                         return "Can do dis all day";
@@ -128,9 +163,8 @@ public class SelScraper {
                     System.out.println("Doggo has achieved aims for the day. Closing kennel and shop");
                     try {
                         driver.quit();
-                        PrintStream fileOut = new PrintStream(FIN_DIR);
-                        System.setOut(fileOut);
-                        System.out.println("Closing with expk of ksh. "+(now_bal+pending_bets)+"\nBalance is ksh. "+now_bal+ " and "+pending_bets+" pending bets with initial investment ksh. "+initial_bal);
+                        writeToFile(FIN_DIR,"Closing with expk of ksh. "+(now_bal+pending_bets)+"\nBalance is ksh. "+now_bal+ " and "+pending_bets+" pending bets with initial investment ksh. "+initial_bal);
+                        writeToFile(START_DIR,"WOOF!");
                         Runtime.getRuntime().exec(DELETE_TMP_DIR);
                     }
                     catch (IOException V){
