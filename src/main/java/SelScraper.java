@@ -121,6 +121,7 @@ public class SelScraper {
                         catch (NumberFormatException e){
                             e.printStackTrace();
                         initial_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));
+						writeToFile(START_DIR,String.valueOf(initial_bal));
                         System.out.println("Starting fresh session with Investment: "+initial_bal);}
                     }
                     catch (NumberFormatException e){e.printStackTrace();
