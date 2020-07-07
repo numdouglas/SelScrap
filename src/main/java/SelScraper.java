@@ -54,7 +54,7 @@ public class SelScraper {
         System.setProperty("webdriver.chrome.driver", C_DRIVER_EXE_DIR);
         options.addArguments("--disable-infobars");
         options.addArguments("--disable-extensions");
-        //options.addArguments("--headless");
+        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         driver = new ChromeDriver(options);
 
