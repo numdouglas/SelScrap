@@ -209,6 +209,7 @@ public class SelScraper {
                     e.printStackTrace();
                 }
                 currentJsQuery="document.evaluate(\"//div[span[text()='Soccer']]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
+
                 jsExecutor.executeScript(currentJsQuery);
                 currentJsQuery="return document.evaluate(\"//div[span[text()='Soccer']]/span[2]\", document, null, XPathResult.STRING_TYPE, null).stringValue;";
                 try {
@@ -240,7 +241,7 @@ public class SelScraper {
                 }catch (NullPointerException v){v.printStackTrace();
 
                      }
-                link_id= driver.findElement(By.xpath(sauce_div.replace("/div/div/div","/a"))).getText().substring(0,7);
+                link_id= driver.findElement(By.xpath(sauce_div.replace("/div/div/div","/a"))).getText().substring(0,8);
 
                 //Show current game in consideration
                 System.out.println(link_id);
@@ -276,12 +277,6 @@ public class SelScraper {
 
                     System.out.println("odds less than 1.4 not found or click intercepted, trying again....");
                     TimeUnit.SECONDS.sleep(4);
-                    //game_bet_counter=0;
-
-                    game_bet_counter--;
-                    already_bet[game_bet_counter]="filled";
-                    //System.out.println("Correction, Game "+game_bet_counter+" ="+already_bet[game_bet_counter]);
-                    game_bet_counter++;
                     //Arrays.fill(already_bet, "null");
                     times_trashed++;}
                 catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
