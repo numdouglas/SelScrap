@@ -15,8 +15,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+
 import static java.lang.System.exit;
 
+import org.w3c.dom.Document;
 import tuluBox.DiscordWebhook;
 
 public class SelScraper {
@@ -28,6 +31,8 @@ public class SelScraper {
 
     PrintStream std_out = System.out;
     StringBuilder bal_from_file=new StringBuilder();
+    StringBuilder stale_bets=new StringBuilder();
+    Stream<String> stale_bets_streamer;
     WebDriver driver;
     ChromeOptions options = new ChromeOptions();
     String link_id;
@@ -38,8 +43,8 @@ public class SelScraper {
     //Use this to store element where we will have multiple consecutive interactions with it.
     WebElement pendingElement;
 
-    WebElement sauce_div;
-    String[] already_bet=new String[10];
+    String sauce_div;
+    String[] already_bet;
     double initial_bal, pending_bets,ex_bal,now_bal;
     boolean first_login=true;
 
@@ -49,7 +54,7 @@ public class SelScraper {
         System.setProperty("webdriver.chrome.driver", C_DRIVER_EXE_DIR);
         options.addArguments("--disable-infobars");
         options.addArguments("--disable-extensions");
-        options.addArguments("--headless");
+        //options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         driver = new ChromeDriver(options);
 
@@ -99,9 +104,14 @@ public class SelScraper {
             System.setOut(fileOut);
             System.out.println(message);
             System.setOut(std_out);}
-
-        catch (FileNotFoundException f){f.printStackTrace();}
         catch (IOException f){f.printStackTrace();}
+    }
+
+    private String staleBets(String[] already_bet){
+        stale_bets_streamer=Stream.of(already_bet);
+        stale_bets_streamer.forEach(stale_bet->stale_bets.append(" and not(a/div/div[contains(text(),'"+stale_bet+"')])"));
+
+        return stale_bets.toString();
     }
 
     private String betOnGudOddz(){
@@ -128,9 +138,7 @@ public class SelScraper {
                         System.out.println("Failed to load balance, retrying");
                         return "Can do dis all day";
                     }
-
-
-                    first_login=false;}
+                }
                 try{
                     driver.get("https://odibets.com/mybets");
 
@@ -194,7 +202,28 @@ public class SelScraper {
 
 
                 System.out.println("starting access");
-                driver.get("https://odibets.com/live?sport=1");
+                driver.get("https://odibets.com/live");
+                try {
+                    TimeUnit.SECONDS.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                currentJsQuery="document.evaluate(\"//div[span[text()='Soccer']]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
+                jsExecutor.executeScript(currentJsQuery);
+                currentJsQuery="return document.evaluate(\"//div[span[text()='Soccer']]/span[2]\", document, null, XPathResult.STRING_TYPE, null).stringValue;";
+                try {
+                    if(first_login==true){
+                        int num_matches=Integer.parseInt(jsExecutor.executeScript(currentJsQuery).toString());
+
+                    already_bet = new String[num_matches];
+                    Arrays.fill(already_bet,"null");
+                    System.out.println("Found "+num_matches+" Live Matches.");
+                    first_login=false;}
+                }catch (NumberFormatException n){
+                    System.out.println("Failed to find number of soccer matches, retrying.");
+                    return "Can do dis all day";
+                }
+
             }catch(WebDriverException g){
                 g.printStackTrace();
                 //login();
@@ -205,26 +234,23 @@ public class SelScraper {
                     TimeUnit.SECONDS.sleep(3);}
                 catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
 
-                try{sauce_div= driver.findElement(By.xpath("//div[@class='l-games-event' and not(div[@disabled='disabled']) and "/*number(div/div[@class='event-scores-1']/span[contains(@id,'h_')])+number(div/div[@class='event-scores-1']/span[contains(@id,'a_')])>-1  and */
-                        +"not(a/div/div[contains(text(),'"+already_bet[0]+"')]) and not(a/div/div[contains(text(),'"+already_bet[1]+"')])" +
-                        " and not(a/div/div[contains(text(),'"+already_bet[2]+"')]) and not(a/div/div[contains(text(),'"+already_bet[3]+"')])" +
-                        " and not(a/div/div[contains(text(),'"+already_bet[4]+"')]) and not(a/div/div[contains(text(),'"+already_bet[5]+"')])" +
-                        " and not(a/div/div[contains(text(),'"+already_bet[6]+"')]) and not(a/div/div[contains(text(),'"+already_bet[7]+"')])" +
-                        " and not(a/div/div[contains(text(),'"+already_bet[8]+"')]) and not(a/div/div[contains(text(),'"+already_bet[9]+"')])]/a"
+                try{sauce_div= "//div[@class='l-games-event' and not(div[@disabled='disabled'])"/*number(div/div[@class='event-scores-1']/span[contains(@id,'h_')])+number(div/div[@class='event-scores-1']/span[contains(@id,'a_')])>-1  and */
+                        +staleBets(already_bet)+"]/div/div/div";///span[contains(@id,'a_')]>1]/div[@class='event-market']/div/button")).click();//and @oddvalue>1.0 and  span/img/@src='https://s3-eu-west-1.amazonaws.com/odibets/img/i-down.png']")).click();
 
+                }catch (NullPointerException v){v.printStackTrace();
 
-                ));///span[contains(@id,'a_')]>1]/div[@class='event-market']/div/button")).click();//and @oddvalue>1.0 and  span/img/@src='https://s3-eu-west-1.amazonaws.com/odibets/img/i-down.png']")).click();
+                     }
+                link_id= driver.findElement(By.xpath(sauce_div.replace("/div/div/div","/a"))).getText().substring(0,7);
 
-                }catch (NullPointerException v){v.printStackTrace();}
-                link_id=sauce_div.getText().substring(0,5);
-                sauce_div.click();
+                //Show current game in consideration
                 System.out.println(link_id);
 
                 try {
                     already_bet[game_bet_counter]=link_id;
-                    game_bet_counter++;}
+                    game_bet_counter++;
+                }
                 catch (ArrayIndexOutOfBoundsException f){
-
+                    //f.printStackTrace();
                     try {
                         System.out.println("Doggo has bet too much, taking fresh air");
                         Runtime.getRuntime().exec(DELETE_TMP_DIR);
@@ -235,26 +261,27 @@ public class SelScraper {
                     catch (IOException i){i.printStackTrace();}}
 
 
-                System.out.println(already_bet[0]);
 
                 try {
                     TimeUnit.SECONDS.sleep(4);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                currentJsQuery ="document.evaluate(\"//button[span[text()>1.18 and text()<1.30] and( substring(@custom, string-length(@custom) -1)='11')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
+                currentJsQuery ="document.evaluate(\""+sauce_div+"/button[span[text()>1.18 and text()<1.30] and( substring(@custom, string-length(@custom) -1)='11')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
                 jsExecutor.executeScript(currentJsQuery);
                 //driver.findElement(By.xpath("//button[contains(text(),'1.']")).click();// | //button[not(@disabled) and span[text()>'1.1'] and span[text()<'1.24'] and substring(@custom, string-length(@custom) -1)='500']")).click();
             }catch (NoSuchElementException |ElementClickInterceptedException | JavascriptException g){//("//button[@oddvalue<'1.5' and @oddvalue>'1.2']")).click();}catch (NoSuchElementException |ElementClickInterceptedException g){
-                g.printStackTrace();
+                //g.printStackTrace();
                 try {//this event implies the games are too few
 
                     System.out.println("odds less than 1.4 not found or click intercepted, trying again....");
-                    TimeUnit.SECONDS.sleep(18);
+                    TimeUnit.SECONDS.sleep(4);
                     //game_bet_counter=0;
-                    if(game_bet_counter<9){
-                        already_bet[game_bet_counter]="filled";
-                        game_bet_counter++;}
+
+                    game_bet_counter--;
+                    already_bet[game_bet_counter]="filled";
+                    //System.out.println("Correction, Game "+game_bet_counter+" ="+already_bet[game_bet_counter]);
+                    game_bet_counter++;
                     //Arrays.fill(already_bet, "null");
                     times_trashed++;}
                 catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
@@ -310,7 +337,7 @@ public class SelScraper {
 
             //driver.findElement(By.xpath("//img[@src='https://s3-eu-west-1.amazonaws.com/odibets/img/menu/odi-live.png']")).click();
             driver.get("https://odibets.com/live?sport=1");
-            System.gc();
+
             try {
 
 
@@ -328,7 +355,6 @@ public class SelScraper {
     public  static void main(String[] args) {
         SelScraper odidoggo = new SelScraper();
         odidoggo.setOptions();
-        Arrays.fill(odidoggo.already_bet,"null");
         odidoggo.driver.quit();
         odidoggo.login();
         while (true){
