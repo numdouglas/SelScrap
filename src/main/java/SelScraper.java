@@ -6,8 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,7 +18,8 @@ import java.util.stream.Stream;
 
 import static java.lang.System.exit;
 
-import org.w3c.dom.Document;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import tuluBox.DiscordWebhook;
 
 public class SelScraper {
@@ -37,6 +37,8 @@ public class SelScraper {
     ChromeOptions options = new ChromeOptions();
     String link_id;
     int game_bet_counter=0;
+    int num_live;
+    boolean doggo_at_rest=true;
 
     JavascriptExecutor jsExecutor;
     String currentJsQuery;
@@ -45,16 +47,16 @@ public class SelScraper {
 
     String sauce_div;
     String[] already_bet;
-    double initial_bal, pending_bets,ex_bal,now_bal;
+    double initial_bal,ex_bal,now_bal;
     boolean first_login=true;
 
 
 
     public void setOptions() {
         System.setProperty("webdriver.chrome.driver", C_DRIVER_EXE_DIR);
+        options.addArguments("--headless");
         options.addArguments("--disable-infobars");
         options.addArguments("--disable-extensions");
-        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         driver = new ChromeDriver(options);
 
@@ -108,6 +110,7 @@ public class SelScraper {
     }
 
     private String staleBets(String[] already_bet){
+        stale_bets.setLength(0);
         stale_bets_streamer=Stream.of(already_bet);
         stale_bets_streamer.forEach(stale_bet->stale_bets.append(" and not(a/div/div[contains(text(),'"+stale_bet+"')])"));
 
@@ -115,12 +118,10 @@ public class SelScraper {
     }
 
     private String betOnGudOddz(){
-        int times_trashed=0;
         try{
-            TimeUnit.SECONDS.sleep(3);}
+            TimeUnit.SECONDS.sleep(2);}
         catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
 
-        do{
             try {
                 if(first_login==true){
                     currentJsQuery="return document.evaluate(\"//a[@class='mybal']/span/text()\", document, null, XPathResult.STRING_TYPE, null).stringValue";
@@ -132,15 +133,16 @@ public class SelScraper {
                             e.printStackTrace();
                         initial_bal=Double.parseDouble(jsExecutor.executeScript(currentJsQuery).toString().replace("/-",""));
 						writeToFile(START_DIR,String.valueOf(initial_bal));
-                        System.out.println("Starting fresh session with Investment: "+initial_bal);}
+                        System.out.println("Starting fresh session with Investment: "+initial_bal);
+                        }
                     }
                     catch (NumberFormatException e){e.printStackTrace();
                         System.out.println("Failed to load balance, retrying");
                         return "Can do dis all day";
                     }
-                }
+                    first_login=false;}
                 try{
-                    driver.get("https://odibets.com/mybets");
+                    //driver.get("https://odibets.com/mybets");
 
                     currentJsQuery="return document.evaluate(\"//a[@class='mybal']/span/text()\", document, null, XPathResult.STRING_TYPE, null).stringValue";
 
@@ -152,16 +154,16 @@ public class SelScraper {
                         return "Can do dis all day";
                     }
 
-                    pending_bets=driver.findElements(By.xpath("//div[@class='l-mybets-section-container show']")).size();
+
                 }
                 catch (WebDriverException f){
-                    pending_bets=0;}
-                ex_bal=(now_bal+(pending_bets/2))-initial_bal;
-                if(ex_bal>=2){
+                 f.printStackTrace();}
+                ex_bal=now_bal-initial_bal;
+                if(ex_bal>=0.7){
 
                     try{
                     DiscordWebhook webhook=new DiscordWebhook("https://discord.com/api/webhooks/728967323515486289/F459Me_olUD2KdJqYP8iP92el8vd_9IKHzkk5_3z1dWsplK4NS2vNdxsD4ps1BDIYhWC");
-                    webhook.setContent("Doggo has achieved aims for the day. Closing kennel and shop."+initial_bal+" to "+now_bal+pending_bets+".");
+                    webhook.setContent("Doggo has achieved aims for the day. Closing kennel and shop."+initial_bal+" to "+now_bal+".");
                     webhook.setUsername("OdiDoggo");
                     webhook.execute();}
                     catch (IOException g){
@@ -171,8 +173,11 @@ public class SelScraper {
 
                     System.out.println("Doggo has achieved aims for the day. Closing kennel and shop");
                     try {
+
+                        driver.get("https://odibets.com/mybets");
+                        int pending_bets=driver.findElements(By.xpath("//div[@class='l-mybets-section-container show']")).size();
                         driver.quit();
-                        writeToFile(FIN_DIR,"Closing with expk of ksh. "+(now_bal+pending_bets)+"\nBalance is ksh. "+now_bal+ " and "+pending_bets+" pending bets with initial investment ksh. "+initial_bal);
+                        writeToFile(FIN_DIR,"Closing with expk of ksh. "+(now_bal+0.7)+"\nBalance is ksh. "+now_bal+ " and "+pending_bets+" pending bets with initial investment ksh. "+initial_bal);
                         writeToFile(START_DIR,"WOOF!");
                         Runtime.getRuntime().exec(DELETE_TMP_DIR);
                     }
@@ -191,7 +196,6 @@ public class SelScraper {
 
                         System.out.println("Account depleted, waiting for pending bets to mature");
                         TimeUnit.MINUTES.sleep(10);
-                        times_trashed++;
                     } catch (InterruptedException in) {
                         System.out.println("Sleep Interrupted");
                     }
@@ -202,84 +206,65 @@ public class SelScraper {
 
 
                 System.out.println("starting access");
+
+
                 driver.get("https://odibets.com/live");
                 try {
-                    TimeUnit.SECONDS.sleep(5);
+                    TimeUnit.SECONDS.sleep(2);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                currentJsQuery="document.evaluate(\"//div[span[text()='Soccer']]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
 
-                jsExecutor.executeScript(currentJsQuery);
-                currentJsQuery="return document.evaluate(\"//div[span[text()='Soccer']]/span[2]\", document, null, XPathResult.STRING_TYPE, null).stringValue;";
                 try {
-                    if(first_login==true){
-                        int num_matches=Integer.parseInt(jsExecutor.executeScript(currentJsQuery).toString());
+                    if(doggo_at_rest==true){
+                        num_live=driver.findElements(By.xpath("//div[@class='l-games-event' and not(div[@disabled='disabled'])]/div/div/div/button[ substring(@custom, string-length(@custom) -1)='11']")).size();
 
-                    already_bet = new String[num_matches];
+                    already_bet = new String[num_live];
                     Arrays.fill(already_bet,"null");
-                    System.out.println("Found "+num_matches+" Live Matches.");
-                    first_login=false;}
+                    System.out.println("Found "+num_live+" Live Matches.");
+                    doggo_at_rest=false;}
                 }catch (NumberFormatException n){
                     System.out.println("Failed to find number of soccer matches, retrying.");
                     return "Can do dis all day";
                 }
 
             }catch(WebDriverException g){
-                g.printStackTrace();
+                //g.printStackTrace();
                 //login();
 
                 System.out.println("Logged out. Doggo logging back in");return "Can do dis all day";}
             try{
                 try{
-                    TimeUnit.SECONDS.sleep(3);}
+                    TimeUnit.SECONDS.sleep(2);}
                 catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
 
-                try{sauce_div= "//div[@class='l-games-event' and not(div[@disabled='disabled'])"/*number(div/div[@class='event-scores-1']/span[contains(@id,'h_')])+number(div/div[@class='event-scores-1']/span[contains(@id,'a_')])>-1  and */
+                sauce_div= "//div[@class='l-games-event' and not(div[@disabled='disabled'])"/*number(div/div[@class='event-scores-1']/span[contains(@id,'h_')])+number(div/div[@class='event-scores-1']/span[contains(@id,'a_')])>-1  and */
                         +staleBets(already_bet)+"]/div/div/div";///span[contains(@id,'a_')]>1]/div[@class='event-market']/div/button")).click();//and @oddvalue>1.0 and  span/img/@src='https://s3-eu-west-1.amazonaws.com/odibets/img/i-down.png']")).click();
 
-                }catch (NullPointerException v){v.printStackTrace();
 
-                     }
-                link_id= driver.findElement(By.xpath(sauce_div.replace("/div/div/div","/a"))).getText().substring(0,8);
+                    link_id = driver.findElement(By.xpath("//div[@class='l-games-event' and not(div[@disabled='disabled'])" + staleBets(already_bet) + "]/a/div/div")).getText().substring(0, 5);
 
                 //Show current game in consideration
                 System.out.println(link_id);
 
-                try {
+
                     already_bet[game_bet_counter]=link_id;
                     game_bet_counter++;
-                }
-                catch (ArrayIndexOutOfBoundsException f){
                     //f.printStackTrace();
-                    try {
-                        System.out.println("Doggo has bet too much, taking fresh air");
-                        Runtime.getRuntime().exec(DELETE_TMP_DIR);
-                        TimeUnit.MINUTES.sleep(4);
-                        game_bet_counter=0;
-                        Arrays.fill(already_bet, "null");}
-                    catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
-                    catch (IOException i){i.printStackTrace();}}
-
-
 
                 try {
                     TimeUnit.SECONDS.sleep(4);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                currentJsQuery ="document.evaluate(\""+sauce_div+"/button[span[text()>1.18 and text()<1.30] and( substring(@custom, string-length(@custom) -1)='11')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
+                //previous exp range(1.18-1.30)
+                currentJsQuery ="document.evaluate(\"//div[@class='l-games-event' and a/div[div[contains(text(),'"+link_id+"')]]]/div/div/div/button[span[text()>1.18 and text()<1.37] and( substring(@custom, string-length(@custom) -1)='11')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();";
                 jsExecutor.executeScript(currentJsQuery);
-                //driver.findElement(By.xpath("//button[contains(text(),'1.']")).click();// | //button[not(@disabled) and span[text()>'1.1'] and span[text()<'1.24'] and substring(@custom, string-length(@custom) -1)='500']")).click();
             }catch (NoSuchElementException |ElementClickInterceptedException | JavascriptException g){//("//button[@oddvalue<'1.5' and @oddvalue>'1.2']")).click();}catch (NoSuchElementException |ElementClickInterceptedException g){
-                //g.printStackTrace();
-                try {//this event implies the games are too few
+                    //g.printStackTrace();
 
-                    System.out.println("odds less than 1.4 not found or click intercepted, trying again....");
-                    TimeUnit.SECONDS.sleep(4);
-                    //Arrays.fill(already_bet, "null");
-                    times_trashed++;}
-                catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
+                    System.out.println("odds less than 1.4 not found or click intercepted.");
+                    checkIfBreakTime();
 
                 return "Can do dis all day"; }
 
@@ -293,29 +278,23 @@ public class SelScraper {
 
                 pendingElement.sendKeys("1");
 
-//                driver.findElement(By.name("stake")).sendKeys("0");
                 try {//this event implies the games are too few
-
-
-                    TimeUnit.SECONDS.sleep(2);
-                    //game_bet_counter=0;
-                    //Arrays.fill(already_bet, "null");
-                    times_trashed++;}
+                    TimeUnit.SECONDS.sleep(1);
+                    }
                 catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
 
                driver.findElement(By.xpath("//div[@class='ct']/button")).click();
 
 
                 try {
-                    TimeUnit.SECONDS.sleep(3);
+                    TimeUnit.SECONDS.sleep(2);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                driver.get("https://odibets.com");
-                //Remove pending bets to start with clean sheet
-                driver.findElement(By.id("betslip-bottom-betslip")).click();
-                driver.findElement(By.xpath("//div[@class='top-remove']")).click();
+//                //Remove pending bets to start with clean sheet
+//                driver.findElement(By.id("betslip-bottom-betslip")).click();
+//                driver.findElement(By.xpath("//div[@class='top-remove']")).click();
 
                 }}catch (NoSuchElementException|ElementClickInterceptedException f){System.out.println("Bet placed one touch");}
             /*
@@ -328,26 +307,27 @@ public class SelScraper {
             }*/
 
             System.out.println("bet placed");
+            checkIfBreakTime();
 
 
-            //driver.findElement(By.xpath("//img[@src='https://s3-eu-west-1.amazonaws.com/odibets/img/menu/odi-live.png']")).click();
-            driver.get("https://odibets.com/live?sport=1");
-
-            try {
-
-
-                TimeUnit.SECONDS.sleep(22);}
-            catch (InterruptedException G){System.out.println("Sleep Interrupted");}
-            times_trashed++;}
-
-
-        while (times_trashed<9);
 
         return "Can do dis all day";    }
 
 
+private void checkIfBreakTime(){
+    try{
+        if(game_bet_counter==num_live){
+            doggo_at_rest   =true;
+            System.out.println("Doggo has bet too much, taking fresh air");
+            Runtime.getRuntime().exec(DELETE_TMP_DIR);
+            TimeUnit.MINUTES.sleep(4);
+            game_bet_counter=0;}}
+    catch (InterruptedException in){System.out.println("Sleep Interrupted"); }
+    catch (IOException i){i.printStackTrace();}
+}
 
-    public  static void main(String[] args) {
+
+public  static void main(String[] args) {
         SelScraper odidoggo = new SelScraper();
         odidoggo.setOptions();
         odidoggo.driver.quit();
