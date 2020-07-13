@@ -68,8 +68,8 @@ public class SelScraper {
         try {
             driver.get("https://odibets.com");
             driver.findElement(By.id("mobile-web-login")).click();
-            driver.findElement(By.xpath("//input[@type='tel']")).sendKeys("0741287087");
-            driver.findElement(By.xpath("//input[@type='password']")).sendKeys("dagi90210");
+            driver.findElement(By.xpath("//input[@type='tel']")).sendKeys("<<USERNAME>>");
+            driver.findElement(By.xpath("//input[@type='password']")).sendKeys("<<PASSWORD>>");
             driver.findElement(By.xpath("//button[@type='submit']")).click();
         } catch (WebDriverException e) {
             e.printStackTrace();
